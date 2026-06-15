@@ -11,9 +11,9 @@ https://asu-tk.github.io/sichigokai-contribution-calculator/
 ## セットアップ
 
 ```bash
-cd tools/nanagokai-contribution-calculator
-npm install
-npm run dev
+corepack enable
+pnpm install
+pnpm run dev
 ```
 
 ブラウザで表示されたローカルURLを開きます。
@@ -21,7 +21,7 @@ npm run dev
 ## ビルド
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 ビルド結果は `dist/` に出力されます。
@@ -30,15 +30,15 @@ npm run build
 
 ### GitHub Pages
 
-1. `npm run build` を実行します。
-2. 生成された `dist/` の中身を GitHub Pages の公開対象にします。
-3. このアプリは `vite.config.ts` で `base: './'` にしているため、サブディレクトリ公開にも対応しやすい構成です。
+`main` ブランチにpushすると、`.github/workflows/deploy-pages.yml` によりGitHub Actionsでビルドし、GitHub Pagesへ公開します。
+
+このアプリは `vite.config.ts` で `base: './'` にしているため、GitHub Pagesのサブディレクトリ公開に対応しています。
 
 ### Vercel
 
 1. Vercelでこのフォルダをプロジェクトルートとして指定します。
 2. Framework Preset は `Vite` を選びます。
-3. Build Command は `npm run build`、Output Directory は `dist` を指定します。
+3. Build Command は `pnpm run build`、Output Directory は `dist` を指定します。
 
 ## 対応Excel形式
 
