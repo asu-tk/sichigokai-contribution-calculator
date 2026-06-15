@@ -118,14 +118,20 @@ const Results = ({ report }: { report: ContributionReport }) => (
           <tbody>
             {report.members.map((member) => (
               <tr key={`${member.no}-${member.name}`}>
-                <td>{member.no || '-'}</td>
-                <td className="member-name">{member.name}</td>
-                <td>{member.inspection}</td>
-                <td>{member.training}</td>
-                <td>{member.fire}</td>
-                <td>{member.earnedPoints}</td>
-                <td>{formatPercent(member.contributionRate)}</td>
-                <td>{formatMoney(member.suggestionAmount)}</td>
+                <td data-label="No">{member.no || '-'}</td>
+                <td data-label="団員名" className="member-name">
+                  {member.name}
+                </td>
+                <td data-label="点検">{member.inspection}</td>
+                <td data-label="訓練">{member.training}</td>
+                <td data-label="火災">{member.fire}</td>
+                <td data-label="獲得P">{member.earnedPoints}</td>
+                <td data-label="活動貢献率">
+                  {formatPercent(member.contributionRate)}
+                </td>
+                <td data-label="七護會 任意献金目安額">
+                  {formatMoney(member.suggestionAmount)}
+                </td>
               </tr>
             ))}
           </tbody>

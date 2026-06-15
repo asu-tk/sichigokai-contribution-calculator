@@ -33,6 +33,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: #f3f6fa;
+  overflow-x: hidden;
 }
 
 button,
@@ -71,7 +72,7 @@ button:disabled {
 .hero h1 {
   margin: 0;
   max-width: 1000px;
-  font-size: clamp(2rem, 3.4vw, 3rem);
+  font-size: 2.8rem;
   line-height: 1.14;
   letter-spacing: 0;
   word-break: keep-all;
@@ -448,17 +449,29 @@ button:disabled {
 
 @media (max-width: 860px) {
   .app-shell {
-    width: min(100% - 20px, 1180px);
+    width: min(100% - 16px, 1180px);
     padding-top: 16px;
+    padding-bottom: 28px;
   }
 
   .hero,
   .panel {
-    padding: 20px;
+    padding: 18px;
   }
 
   .hero {
     min-height: auto;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .hero p {
+    margin-top: 14px;
+    font-size: 0.95rem;
+    line-height: 1.75;
   }
 
   .controls-panel,
@@ -476,8 +489,200 @@ button:disabled {
     min-width: 0;
   }
 
+  .toolbar button {
+    justify-content: center;
+    min-height: 46px;
+  }
+
   .section-heading {
     display: grid;
+    gap: 8px;
+    align-items: start;
+  }
+}
+
+@media (max-width: 900px) {
+  .table-wrap {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .result-table,
+  .result-table tbody,
+  .result-table tr,
+  .result-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .result-table {
+    min-width: 0;
+    background: transparent;
+  }
+
+  .result-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .result-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .result-table tr {
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 8px 18px rgb(11 31 58 / 6%);
+  }
+
+  .result-table tbody tr:nth-child(even) {
+    background: #fff;
+  }
+
+  .result-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 11px 13px;
+    border-bottom: 1px solid var(--line);
+    text-align: right;
+    white-space: normal;
+    font-size: 0.92rem;
+  }
+
+  .result-table td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: var(--muted);
+    font-weight: 800;
+    text-align: left;
+  }
+
+  .result-table td:last-child {
+    border-bottom: 0;
+  }
+
+  .result-table td.member-name {
+    display: block;
+    padding: 14px 13px;
+    color: #fff;
+    background: var(--navy);
+    text-align: left;
+    font-size: 1rem;
+  }
+
+  .result-table td.member-name::before {
+    display: block;
+    margin-bottom: 3px;
+    color: #c7d8ec;
+    font-size: 0.76rem;
+  }
+
+  .result-table td[data-label='七護會 任意献金目安額'] {
+    color: #10223a;
+    font-weight: 900;
+  }
+}
+
+@media (max-width: 700px) {
+  .hero {
+    border-radius: 6px;
+  }
+
+  .hero h1 {
+    font-size: 1.72rem;
+  }
+
+  .panel {
+    margin-top: 12px;
+    border-radius: 6px;
+  }
+
+  .upload-label,
+  .url-import-row button,
+  .toolbar button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .upload-box input,
+  .url-import-row input {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .period-control {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .period-control button {
+    min-height: 44px;
+    padding: 0 8px;
+    font-size: 0.9rem;
+  }
+
+  .settings-grid {
+    gap: 10px;
+  }
+
+  .setting-field div {
+    min-height: 48px;
+  }
+
+  .toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .summary-grid {
+    gap: 8px;
+  }
+
+  .summary-item {
+    display: grid;
+    grid-template-columns: minmax(110px, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    min-height: auto;
+    padding: 12px;
+  }
+
+  .summary-item strong {
+    margin-top: 0;
+    font-size: 1.08rem;
+    text-align: right;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero h1 {
+    font-size: 1.52rem;
+  }
+
+  .hero p,
+  .upload-box p,
+  .url-import-box p,
+  .section-heading p,
+  .empty-state p {
+    font-size: 0.9rem;
+  }
+
+  .summary-item {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-item strong {
+    text-align: left;
   }
 }
 
@@ -555,15 +760,51 @@ button:disabled {
   }
 
   .result-table {
+    display: table;
     min-width: 0;
+    border-collapse: collapse;
+  }
+
+  .result-table thead {
+    position: static;
+    display: table-header-group;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
+
+  .result-table tbody {
+    display: table-row-group;
+  }
+
+  .result-table tr {
+    display: table-row;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .result-table th,
   .result-table td {
+    display: table-cell;
     padding: 6px;
     color: #111827;
     background: #fff;
     font-size: 9pt;
+  }
+
+  .result-table td::before,
+  .result-table td.member-name::before {
+    content: none;
+  }
+
+  .result-table td.member-name {
+    display: table-cell;
+    color: #111827;
+    background: #fff;
+    text-align: left;
   }
 
   .result-table th {
