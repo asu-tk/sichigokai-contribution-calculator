@@ -30,6 +30,9 @@ jobs:
       - name: Set up pnpm
         run: corepack enable
 
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -37,7 +40,7 @@ jobs:
         run: pnpm run build
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: dist
 
