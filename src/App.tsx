@@ -3,6 +3,8 @@ import {
   Download,
   FileSpreadsheet,
   FileText,
+  Link as LinkIcon,
+  Loader2,
   Printer,
   Settings,
   Upload,
@@ -16,6 +18,7 @@ import {
 } from './domain';
 import { exportCsv, exportDocx } from './exporters';
 import { formatMoney, formatPercent } from './formatters';
+import { fetchGoogleSheetWorkbook } from './googleSheets';
 import type {
   CalculatorSettings,
   ContributionReport,
@@ -58,7 +61,7 @@ const SummaryItem = ({
 const EmptyState = () => (
   <section className="empty-state">
     <FileSpreadsheet aria-hidden="true" />
-    <h2>Excelをアップロードすると集計結果が表示されます</h2>
+    <h2>ExcelまたはGoogleスプレッドシートURLを読み込むと集計結果が表示されます</h2>
     <p>
       月別シートの3行目にある「点検」「訓練」「火災」の列だけを読み取り、B列の団員名ごとに計算します。
     </p>
@@ -135,11 +138,13 @@ const Results = ({ report }: { report: ContributionReport }) => (
 function App() {
   const [scan, setScan] = useState<WorkbookScan | null>(null);
   const [fileName, setFileName] = useState('');
+  const [sheetUrl, setSheetUrl] = useState('');
   const [period, setPeriod] = useState<PeriodSelection>('first-half');
   const [settings, setSettings] =
     useState<CalculatorSettings>(DEFAULT_SETTINGS);
   const [readError, setReadError] = useState('');
   const [isExportingWord, setIsExportingWord] = useState(false);
+  const [isImportingSheet, setIsImportingSheet] = useState(false);
 
   const reportResult = useMemo(
     () =>
@@ -158,6 +163,11 @@ function App() {
     }));
   };
 
+  const loadWorkbook = (buffer: ArrayBuffer, sourceName: string) => {
+    setScan(parseWorkbook(buffer));
+    setFileName(sourceName);
+  };
+
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
@@ -166,15 +176,41 @@ function App() {
     }
 
     setReadError('');
-    setFileName(file.name);
 
     try {
       const buffer = await file.arrayBuffer();
-      setScan(parseWorkbook(buffer));
+      loadWorkbook(buffer, file.name);
     } catch (error) {
       console.error(error);
       setScan(null);
       setReadError(ERROR_MESSAGES['excel-read-failed']);
+    }
+  };
+
+  const handleGoogleSheetImport = async () => {
+    const value = sheetUrl.trim();
+
+    if (!value) {
+      setReadError(ERROR_MESSAGES['google-sheets-url-invalid']);
+      return;
+    }
+
+    setReadError('');
+    setIsImportingSheet(true);
+
+    try {
+      const workbook = await fetchGoogleSheetWorkbook(value);
+      loadWorkbook(workbook.buffer, workbook.label);
+    } catch (error) {
+      console.error(error);
+      setScan(null);
+      setReadError(
+        error instanceof Error && error.message === 'google-sheets-url-invalid'
+          ? ERROR_MESSAGES['google-sheets-url-invalid']
+          : ERROR_MESSAGES['google-sheets-read-failed'],
+      );
+    } finally {
+      setIsImportingSheet(false);
     }
   };
 
@@ -206,18 +242,53 @@ function App() {
       </header>
 
       <section className="panel controls-panel no-print" aria-label="読み込みと集計期間">
-        <div className="upload-box">
-          <label htmlFor="attendance-file" className="upload-label">
-            <Upload aria-hidden="true" />
-            <span>Excelアップロード</span>
-          </label>
-          <input
-            id="attendance-file"
-            type="file"
-            accept=".xlsx,.xls,.xlsm"
-            onChange={handleFileChange}
-          />
-          <p>{fileName ? `選択中：${fileName}` : 'xlsx / xls / xlsm に対応'}</p>
+        <div className="import-stack">
+          <div className="upload-box">
+            <label htmlFor="attendance-file" className="upload-label">
+              <Upload aria-hidden="true" />
+              <span>Excelアップロード</span>
+            </label>
+            <input
+              id="attendance-file"
+              type="file"
+              accept=".xlsx,.xls,.xlsm"
+              onChange={handleFileChange}
+            />
+            <p>{fileName ? `読み込み中の資料：${fileName}` : 'xlsx / xls / xlsm に対応'}</p>
+          </div>
+
+          <div className="url-import-box">
+            <label htmlFor="google-sheet-url">GoogleスプレッドシートURL</label>
+            <div className="url-import-row">
+              <input
+                id="google-sheet-url"
+                type="url"
+                value={sheetUrl}
+                placeholder="https://docs.google.com/spreadsheets/d/..."
+                onChange={(event) => setSheetUrl(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    void handleGoogleSheetImport();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleGoogleSheetImport}
+                disabled={isImportingSheet}
+              >
+                {isImportingSheet ? (
+                  <Loader2 className="spin" aria-hidden="true" />
+                ) : (
+                  <LinkIcon aria-hidden="true" />
+                )}
+                {isImportingSheet ? '取り込み中' : 'URLから取り込み'}
+              </button>
+            </div>
+            <p>
+              共有済みURLまたはウェブ公開URLに対応します。非公開シートはExcel形式でダウンロードしてアップロードしてください。
+            </p>
+          </div>
         </div>
 
         <div className="period-control" role="group" aria-label="集計期間選択">

@@ -100,9 +100,14 @@ button:disabled {
 
 .controls-panel {
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 20px;
-  align-items: center;
+  align-items: start;
+}
+
+.import-stack {
+  display: grid;
+  gap: 16px;
 }
 
 .upload-box {
@@ -123,6 +128,7 @@ button:disabled {
 }
 
 .upload-label svg,
+.url-import-row svg,
 .toolbar svg,
 .heading-with-icon svg {
   width: 19px;
@@ -130,7 +136,8 @@ button:disabled {
   stroke-width: 2;
 }
 
-.upload-box input {
+.upload-box input,
+.url-import-row input {
   width: min(100%, 540px);
   padding: 12px;
   color: #1f2f46;
@@ -140,11 +147,60 @@ button:disabled {
 }
 
 .upload-box p,
+.url-import-box p,
 .section-heading p,
 .empty-state p {
   margin: 0;
   color: var(--muted);
   line-height: 1.6;
+}
+
+.url-import-box {
+  display: grid;
+  gap: 8px;
+}
+
+.url-import-box > label {
+  color: #394a60;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.url-import-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.url-import-row input {
+  width: 100%;
+  outline-color: var(--accent);
+}
+
+.url-import-row button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 45px;
+  padding: 0 15px;
+  color: #fff;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .period-control {
@@ -408,6 +464,10 @@ button:disabled {
   .controls-panel,
   .settings-grid,
   .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .url-import-row {
     grid-template-columns: 1fr;
   }
 

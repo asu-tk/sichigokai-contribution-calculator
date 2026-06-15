@@ -6,6 +6,8 @@ export type PeriodSelection = 'first-half' | 'second-half' | 'annual';
 
 export type ParseErrorCode =
   | 'excel-read-failed'
+  | 'google-sheets-url-invalid'
+  | 'google-sheets-read-failed'
   | 'no-target-sheets'
   | 'no-activity-columns'
   | 'no-member-names'

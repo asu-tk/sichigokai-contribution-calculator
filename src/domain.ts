@@ -31,6 +31,10 @@ export const PERIOD_LABELS: Record<PeriodSelection, string> = {
 export const ERROR_MESSAGES = {
   'excel-read-failed':
     'Excelファイルを読み取れませんでした。xlsx/xls形式か、ファイルが破損していないか確認してください。',
+  'google-sheets-url-invalid':
+    'GoogleスプレッドシートのURLを確認してください。https://docs.google.com/spreadsheets/d/... の形式に対応しています。',
+  'google-sheets-read-failed':
+    'Googleスプレッドシートを読み取れませんでした。共有設定を「リンクを知っている全員が閲覧可」にするか、「ウェブに公開」してから再度お試しください。',
   'no-target-sheets':
     '集計期間に該当する月別シートが見つかりません。シート名を「4月」「11月」などにしてください。',
   'no-activity-columns':
