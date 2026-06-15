@@ -34,6 +34,13 @@ pnpm run build
 
 このアプリは `vite.config.ts` で `base: './'` にしているため、GitHub Pagesのサブディレクトリ公開に対応しています。
 
+初回だけGitHubのリポジトリ設定でPagesの公開元を有効化してください。
+
+- 推奨: `Settings` > `Pages` > `Source` を `GitHub Actions` にする
+- 代替: `Settings` > `Pages` > `Source` を `Deploy from a branch` にして、Branchを `main`、Folderを `/docs` にする
+
+`docs/` にはビルド済みの静的ファイルを配置しています。
+
 ### Vercel
 
 1. Vercelでこのフォルダをプロジェクトルートとして指定します。
