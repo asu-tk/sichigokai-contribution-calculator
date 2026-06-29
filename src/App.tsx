@@ -1,5 +1,6 @@
 import { ChangeEvent, useMemo, useState } from 'react';
 import {
+  CircleDollarSign,
   Download,
   FileSpreadsheet,
   FileText,
@@ -13,6 +14,9 @@ import {
   buildContributionReport,
   DEFAULT_SETTINGS,
   ERROR_MESSAGES,
+  getDeductedBaseAmount,
+  getHalfContributionBaseAmount,
+  NATIONAL_STANDARD_ANNUAL_COMPENSATION,
   parseWorkbook,
   PERIOD_LABELS,
 } from './domain';
@@ -23,6 +27,7 @@ import type {
   CalculatorSettings,
   ContributionReport,
   PeriodSelection,
+  RoundingUnit,
   WorkbookScan,
 } from './types';
 
@@ -32,8 +37,10 @@ const periodOptions: PeriodSelection[] = [
   'annual',
 ];
 
-const numericFields: Array<{
-  key: keyof CalculatorSettings;
+type NumericSettingKey = Exclude<keyof CalculatorSettings, 'roundingUnit'>;
+
+const pointFields: Array<{
+  key: NumericSettingKey;
   label: string;
   suffix: string;
   step: number;
@@ -42,8 +49,30 @@ const numericFields: Array<{
   { key: 'trainingPoint', label: '訓練P', suffix: 'P', step: 1 },
   { key: 'firePoint', label: '火災P', suffix: 'P', step: 1 },
   { key: 'fireCap', label: '火災上限', suffix: 'P', step: 1 },
-  { key: 'maxSuggestion', label: '最大目安額', suffix: '円', step: 1000 },
 ];
+
+const amountFields: Array<{
+  key: NumericSettingKey;
+  label: string;
+  suffix: string;
+  step: number;
+}> = [
+  {
+    key: 'cityAnnualCompensation',
+    label: '調布市団員年額報酬',
+    suffix: '円',
+    step: 1000,
+  },
+  { key: 'membershipFee', label: '七護會年会費', suffix: '円', step: 1000 },
+  {
+    key: 'contributionBaseAmount',
+    label: '献金算定基準額',
+    suffix: '円',
+    step: 1000,
+  },
+];
+
+const roundingOptions: RoundingUnit[] = [5000, 1000];
 
 const SummaryItem = ({
   label,
@@ -55,6 +84,22 @@ const SummaryItem = ({
   <div className="summary-item">
     <span>{label}</span>
     <strong>{value}</strong>
+  </div>
+);
+
+const AmountDisplay = ({
+  label,
+  value,
+  note,
+}: {
+  label: string;
+  value: string;
+  note?: string;
+}) => (
+  <div className="amount-display-card">
+    <span>{label}</span>
+    <strong>{value}</strong>
+    {note ? <em>{note}</em> : null}
   </div>
 );
 
@@ -160,8 +205,16 @@ function App() {
   const report = reportResult?.ok ? reportResult.report : undefined;
   const activeError =
     readError || (reportResult && !reportResult.ok ? reportResult.error.message : '');
+  const deductedBaseAmount = useMemo(
+    () => getDeductedBaseAmount(settings),
+    [settings],
+  );
+  const halfContributionBaseAmount = useMemo(
+    () => getHalfContributionBaseAmount(settings),
+    [settings],
+  );
 
-  const updateNumber = (key: keyof CalculatorSettings, rawValue: string) => {
+  const updateNumber = (key: NumericSettingKey, rawValue: string) => {
     const value = Number(rawValue);
     setSettings((current) => ({
       ...current,
@@ -317,10 +370,10 @@ function App() {
             <Settings aria-hidden="true" />
             <h2>計算設定</h2>
           </div>
-          <p>必要に応じてポイントや最大目安額を変更できます。</p>
+          <p>必要に応じて活動ポイントや火災ポイント上限を変更できます。</p>
         </div>
         <div className="settings-grid">
-          {numericFields.map((field) => (
+          {pointFields.map((field) => (
             <label key={field.key} className="setting-field">
               <span>{field.label}</span>
               <div>
@@ -337,6 +390,73 @@ function App() {
               </div>
             </label>
           ))}
+        </div>
+      </section>
+
+      <section className="panel amount-settings-panel no-print" aria-label="金額設定">
+        <div className="section-heading compact">
+          <div className="heading-with-icon">
+            <CircleDollarSign aria-hidden="true" />
+            <h2>金額設定</h2>
+          </div>
+          <p>
+            差引後基準額は参考表示です。七護會 任意献金目安額の計算には献金算定基準額を使用します。
+          </p>
+        </div>
+        <div className="amount-settings-grid">
+          <AmountDisplay
+            label="国標準年額報酬"
+            value={formatMoney(NATIONAL_STANDARD_ANNUAL_COMPENSATION)}
+            note="参考表示"
+          />
+          {amountFields.map((field) => (
+            <label key={field.key} className="setting-field">
+              <span>{field.label}</span>
+              <div>
+                <input
+                  type="number"
+                  min="0"
+                  step={field.step}
+                  value={settings[field.key]}
+                  onChange={(event) =>
+                    updateNumber(field.key, event.target.value)
+                  }
+                />
+                <em>{field.suffix}</em>
+              </div>
+            </label>
+          ))}
+          <AmountDisplay
+            label="差引後基準額"
+            value={formatMoney(deductedBaseAmount)}
+            note="実際の報酬から七護會年会費を差し引いた参考金額"
+          />
+          <AmountDisplay
+            label="半期算定基準額"
+            value={formatMoney(halfContributionBaseAmount)}
+            note="献金算定基準額 ÷ 2"
+          />
+        </div>
+        <div className="rounding-setting">
+          <span>端数処理</span>
+          <div className="rounding-control" role="group" aria-label="端数処理">
+            {roundingOptions.map((unit) => (
+              <button
+                key={unit}
+                type="button"
+                className={settings.roundingUnit === unit ? 'active' : ''}
+                onClick={() =>
+                  setSettings((current) => ({
+                    ...current,
+                    roundingUnit: unit,
+                  }))
+                }
+              >
+                {unit.toLocaleString('ja-JP')}円単位
+              </button>
+            ))}
+          </div>
+          <em>計算後の金額を選択した単位で四捨五入します。</em>
         </div>
       </section>
 

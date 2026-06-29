@@ -19,7 +19,50 @@ export const DEFAULT_SETTINGS: CalculatorSettings = {
   trainingPoint: 2,
   firePoint: 3,
   fireCap: 10,
-  maxSuggestion: 45000,
+  cityAnnualCompensation: 106800,
+  membershipFee: 15000,
+  contributionBaseAmount: 90000,
+  roundingUnit: 5000,
+};
+
+export const NATIONAL_STANDARD_ANNUAL_COMPENSATION = 36500;
+
+export const getDeductedBaseAmount = (
+  settings: CalculatorSettings,
+): number => settings.cityAnnualCompensation - settings.membershipFee;
+
+export const getHalfContributionBaseAmount = (
+  settings: CalculatorSettings,
+): number => settings.contributionBaseAmount / 2;
+
+export const getSuggestionRateForContributionRate = (
+  contributionRate: number,
+): number => {
+  if (contributionRate >= 80) {
+    return 0;
+  }
+
+  if (contributionRate >= 60) {
+    return 0.25;
+  }
+
+  if (contributionRate >= 40) {
+    return 0.5;
+  }
+
+  if (contributionRate >= 20) {
+    return 0.75;
+  }
+
+  return 1;
+};
+
+export const roundToUnit = (amount: number, unit: number): number => {
+  if (!Number.isFinite(amount) || amount <= 0 || unit <= 0) {
+    return 0;
+  }
+
+  return Math.round(amount / unit) * unit;
 };
 
 export const PERIOD_LABELS: Record<PeriodSelection, string> = {
@@ -149,23 +192,9 @@ const amountForRate = (
   contributionRate: number,
   settings: CalculatorSettings,
 ): number => {
-  if (contributionRate >= 80) {
-    return 0;
-  }
-
-  if (contributionRate >= 60) {
-    return 10000;
-  }
-
-  if (contributionRate >= 40) {
-    return 20000;
-  }
-
-  if (contributionRate >= 20) {
-    return 35000;
-  }
-
-  return settings.maxSuggestion;
+  const halfBaseAmount = getHalfContributionBaseAmount(settings);
+  const rate = getSuggestionRateForContributionRate(contributionRate);
+  return roundToUnit(halfBaseAmount * rate, settings.roundingUnit);
 };
 
 export const parseWorkbook = (buffer: ArrayBuffer): WorkbookScan => {

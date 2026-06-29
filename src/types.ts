@@ -4,6 +4,8 @@ export type HalfKey = 'first' | 'second';
 
 export type PeriodSelection = 'first-half' | 'second-half' | 'annual';
 
+export type RoundingUnit = 1000 | 5000;
+
 export type ParseErrorCode =
   | 'excel-read-failed'
   | 'google-sheets-url-invalid'
@@ -18,7 +20,10 @@ export interface CalculatorSettings {
   trainingPoint: number;
   firePoint: number;
   fireCap: number;
-  maxSuggestion: number;
+  cityAnnualCompensation: number;
+  membershipFee: number;
+  contributionBaseAmount: number;
+  roundingUnit: RoundingUnit;
 }
 
 export interface ActivityCounts {

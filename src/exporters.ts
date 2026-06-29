@@ -11,11 +11,16 @@ import {
   WidthType,
 } from 'docx';
 import type { CalculatorSettings, ContributionReport } from './types';
+import {
+  getDeductedBaseAmount,
+  getHalfContributionBaseAmount,
+  NATIONAL_STANDARD_ANNUAL_COMPENSATION,
+} from './domain';
 import { formatMoney, formatPercent } from './formatters';
 
 const reportTitle = '七護會 任意献金目安額 集計資料';
 const reportNote =
-  '本資料に記載された金額は、七護會への任意献金を検討するための目安額であり、確定した請求額ではありません。';
+  '本資料に記載された金額は、七護會への任意献金を検討するための目安であり、確定事項ではありません。';
 
 const downloadBlob = (blob: Blob, fileName: string): void => {
   const url = URL.createObjectURL(blob);
@@ -106,6 +111,34 @@ const buildSummaryTable = (report: ContributionReport): Table =>
     ),
   });
 
+const buildAmountSettingsTable = (settings: CalculatorSettings): Table =>
+  new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      [
+        '国標準年額報酬',
+        `${formatMoney(NATIONAL_STANDARD_ANNUAL_COMPENSATION)}（参考表示）`,
+      ],
+      ['調布市団員年額報酬', formatMoney(settings.cityAnnualCompensation)],
+      ['七護會年会費', formatMoney(settings.membershipFee)],
+      [
+        '差引後基準額',
+        `${formatMoney(getDeductedBaseAmount(settings))}（参考金額）`,
+      ],
+      ['献金算定基準額', formatMoney(settings.contributionBaseAmount)],
+      ['半期算定基準額', formatMoney(getHalfContributionBaseAmount(settings))],
+      [
+        '端数処理',
+        `${settings.roundingUnit.toLocaleString('ja-JP')}円単位で四捨五入`,
+      ],
+    ].map(
+      ([label, value]) =>
+        new TableRow({
+          children: [tableCell(label, true), tableCell(value)],
+        }),
+    ),
+  });
+
 const buildMemberTable = (report: ContributionReport): Table =>
   new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
@@ -170,10 +203,12 @@ export const exportDocx = async (
             `火災ポイントは半期ごとに上限${settings.fireCap}ポイントとし、年間合計では前期・後期それぞれに上限を適用します。`,
           ),
           paragraph(
-            `活動貢献率80%以上：0円、60%以上80%未満：10,000円、40%以上60%未満：20,000円、20%以上40%未満：35,000円、20%未満：${formatMoney(
-              settings.maxSuggestion,
-            )}。`,
+            '七護會 任意献金目安額は、半期算定基準額に活動貢献率ごとの割合を掛け、選択した単位で四捨五入します。',
           ),
+          paragraph(
+            '活動貢献率80%以上：0%、60%以上80%未満：25%、40%以上60%未満：50%、20%以上40%未満：75%、20%未満：100%。',
+          ),
+          buildAmountSettingsTable(settings),
           new Paragraph({
             text: 'サマリー',
             heading: HeadingLevel.HEADING_1,
